@@ -136,7 +136,7 @@ class Instagram {
    * @return mixed
    */
   public function getUserFeed($limit = 0, $max_id = 0) {
-    return $this->_makeCall('users/self/feed', true, array('count' => $limit, 'max_id' = $max_id));
+    return $this->_makeCall('users/self/feed', true, array('count' => $limit, 'max_id' => $max_id));
   }
 
   /**
