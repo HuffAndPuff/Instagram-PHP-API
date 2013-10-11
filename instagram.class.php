@@ -286,7 +286,7 @@ class Instagram {
    * @return mixed
    */
   public function getMediaComments($id) {
-    return $this->_makeCall('media/' . $id . '/comments', true);
+    return $this->_makeCall('media/' . $id . '/comments', false);
   }
 
   /**
