@@ -107,6 +107,15 @@ class Instagram {
   }
 
   /**
+   * Returns information about the
+   * user who's credentials we're using.
+   * Requires authenticated call obviously.
+   */
+  public function verifyCredentials() {
+    return $this->_makeCall('account/verify_credentials', true);
+  }
+
+  /**
    * Search for a user
    *
    * @param string $name                  Instagram username
@@ -236,6 +245,7 @@ class Instagram {
   public function getPopularMedia() {
     return $this->_makeCall('media/popular');
   }
+
 
   /**
    * Search for tags by name
