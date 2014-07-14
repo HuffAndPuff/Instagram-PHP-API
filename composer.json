@@ -16,7 +16,8 @@
         }
     ],
     "require": {
-        "php": ">=5.2"
+        "php": ">=5.2.0",
+        "ext-curl": "*"
     },
     "autoload": {
         "files": [ "instagram.class.php" ]
