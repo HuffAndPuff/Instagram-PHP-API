@@ -1,24 +1,26 @@
-# Instagram PHP API #
+# ![Image](https://raw.github.com/cosenary/Instagram-PHP-API/master/example/assets/instagram.png) Instagram PHP API V2
 
-## About ##
+## About
 
 A PHP wrapper for the Instagram API.  
 Feedback or bug reports are appreciated.
 
-## Requirements ##
+> Supports [Instagram video](#instagram-videos) responses.
+
+## Requirements
 
 - PHP 5.2.x or higher
 - cURL
 - Registered Instagram App
 
-## Get started ##
+## Get started
 
 [Register your application](http://instagr.am/developer/register/) with Instagram, and receive your OAuth `client_id` and `client_secret`.  
 Take a look at the [uri guidlines](#samples-for-redirect-urls) before registering a redirect URI.
 
 > A good place to get started is the example App.
 
-### Initialize the class ###
+### Initialize the class
 
 ```php
 <?php
@@ -34,7 +36,7 @@ Take a look at the [uri guidlines](#samples-for-redirect-urls) before registerin
 ?>
 ```
 
-### Authenticate user (OAuth2) ###
+### Authenticate user (OAuth2)
 
 ```php
 <?php
@@ -46,7 +48,7 @@ Take a look at the [uri guidlines](#samples-for-redirect-urls) before registerin
 ?>
 ```
 
-### Get user likes ###
+### Get user likes
 
 ```php
 <?php
@@ -65,32 +67,38 @@ Take a look at the [uri guidlines](#samples-for-redirect-urls) before registerin
 
 **All methods return the API data `json_decode()` - so you can directly access the data.**
 
-## Available methods ##
+## Available methods
 
-### Setup Instagram ###
+### Setup Instagram
 
 `new Instagram(<array>/<string>);`
 
 `array` if you want to authenticate a user and access its data:
 
-    new Instagram(array(
-      'apiKey'      => 'YOUR_APP_KEY',
-      'apiSecret'   => 'YOUR_APP_SECRET',
-      'apiCallback' => 'YOUR_APP_CALLBACK'
-    ));
+```php
+new Instagram(array(
+  'apiKey'      => 'YOUR_APP_KEY',
+  'apiSecret'   => 'YOUR_APP_SECRET',
+  'apiCallback' => 'YOUR_APP_CALLBACK'
+));
+```
 
 `string` if you *only* want to access public data:
 
-    new Instagram('YOUR_APP_KEY');
+```php
+new Instagram('YOUR_APP_KEY');
+```
 
-### Get login URL ###
+### Get login URL
 
 `getLoginUrl(<array>)`
 
-    getLoginUrl(array(
-      'basic',
-      'likes'
-    ));
+```php
+getLoginUrl(array(
+  'basic',
+  'likes'
+));
+```
 
 **Optional scope parameters:**
 
@@ -118,18 +126,18 @@ Take a look at the [uri guidlines](#samples-for-redirect-urls) before registerin
   <tr>
     <td><code>comments</code></td>
     <td>to create or delete comments</td>
-    <td>coming soon...</td>
+    <td><code>getMediaComments()</code>, <code>addMediaComment()</code>, <code>deleteMediaComment()</code></td>
   </tr>
 </table>
 
-### Get OAuth token ###
+### Get OAuth token
 
 `getOAuthToken($code, <true>/<false>)`
 
 `true` : Returns only the OAuth token  
 `false` *[default]* : Returns OAuth token and profile data of the authenticated user
 
-### Set / Get access token ###
+### Set / Get access token
 
 Stores access token, for further method calls:  
 `setAccessToken($token)`
@@ -137,14 +145,15 @@ Stores access token, for further method calls:
 Returns access token, if you want to store it for later usage:  
 `getAccessToken()`
 
-### User methods ###
+### User methods
 
 **Public methods**
 
 - `getUser($id)`
 - `searchUser($name, <$limit>)`
+- `getUserMedia($id, <$limit>)`
 
-**Authenticated user methods**
+**Authenticated methods**
 
 - `getUser()`
 - `getUserLikes(<$limit>)`
@@ -152,14 +161,14 @@ Returns access token, if you want to store it for later usage:
 - `getUserMedia(<$id>, <$limit>)`
     - if an `$id` isn't defined, it returns the media of the logged in user
 
-> [Sample responses of the User Endpoints.](https://github.com/cosenary/Instagram-PHP-API/wiki/User-resources)
+> [Sample responses of the User Endpoints.](http://instagram.com/developer/endpoints/users/)
 
-### Relationship methods ###
+### Relationship methods
 
-**Authenticated user methods**
+**Authenticated methods**
 
-- `getUserFollows(<$id>, <$limit>)`
-- `getUserFollower(<$id>, <$limit>)`
+- `getUserFollows($id, <$limit>)`
+- `getUserFollower($id, <$limit>)`
 - `getUserRelationship($id)`
 - `modifyRelationship($action, $user)`
     - `$action` : Action command (follow / unfollow / block / unblock / approve / deny)
@@ -178,23 +187,44 @@ Please note that the `modifyRelationship()` method requires the `relationships` 
 
 ---
 
-> [Sample responses of the Relationship Endpoints.](https://github.com/cosenary/Instagram-PHP-API/wiki/Relationship-resources)
+> [Sample responses of the Relationship Endpoints.](http://instagram.com/developer/endpoints/relationships/)
 
-### Media methods ###
+### Media methods
 
 **Public methods**
 
 - `getMedia($id)`
 - `getPopularMedia()`
-- `searchMedia($lat, $lng, <$distance>)`
+- `searchMedia($lat, $lng, <$distance>, <$minTimestamp>, <$maxTimestamp>)`
     - `$lat` and `$lng` are coordinates and have to be floats like: `48.145441892290336`,`11.568603515625`
-    - `$distance` Radial distance in meter (max. distance: 5km = 5000)
+    - `$distance` Radial distance in meter (default is 1km = 1000, max. is 5km = 5000)
+    - `$minTimestamp` All media returned will be taken *later* than this timestamp (default: 5 days ago)
+    - `$maxTimestamp` All media returned will be taken *earlier* than this timestamp (default: now)
 
-All `<$limit>` parameters are optional. If the limit is undefined, all available results will be returned.
+> [Sample responses of the Media Endpoints.](http://instagram.com/developer/endpoints/media/)
 
-> [Sample responses of the Media Endpoints.](https://github.com/cosenary/Instagram-PHP-API/wiki/Media-resources)
+### Comment methods
 
-### Tag methods ###
+**Public methods**
+
+- `getMediaComments($id)`
+
+**Authenticated methods**
+
+- `addMediaComment($id, $text)`
+    - **restricted access:** please email `apidevelopers[at]instagram.com` for access
+- `deleteMediaComment($id, $commentID)`
+    - the comment must be authored by the authenticated user
+
+---
+
+Please note that the authenticated methods require the `comments` [scope](#get-login-url).
+
+---
+
+> [Sample responses of the Comment Endpoints.](http://instagram.com/developer/endpoints/comments/)
+
+### Tag methods
 
 **Public methods**
 
@@ -202,35 +232,51 @@ All `<$limit>` parameters are optional. If the limit is undefined, all available
 - `getTagMedia($name)`
 - `searchTags($name)`
 
-> [Sample responses of the Tag Endpoints.](https://github.com/cosenary/Instagram-PHP-API/wiki/Tag-resources)
+> [Sample responses of the Tag Endpoints.](http://instagram.com/developer/endpoints/tags/)
 
-### Likes methods ###
+### Likes methods
 
-**Authenticated user methods**
+**Authenticated methods**
 
 - `getMediaLikes($id)`
 - `likeMedia($id)`
 - `deleteLikedMedia($id)`
 
 > How to like a Media: [Example usage](https://gist.github.com/3287237)  
-> [Sample responses of the Likes Endpoints.](https://github.com/cosenary/Instagram-PHP-API/wiki/Likes-resources)
+> [Sample responses of the Likes Endpoints.](http://instagram.com/developer/endpoints/likes/)
 
-### Further endpoints ###
+All `<...>` parameters are optional. If the limit is undefined, all available results will be returned.
 
-It's planned to extend the class with new methods.
-Let me know, if you think, that one of the missing endpoints has priority.
+## Instagram videos
 
-**Missing Endpoints:**
+Instagram entries are marked with a `type` attribute (`image` or `video`), that allows you to identify videos.
 
-`Comments`, `Locations`, `Geographies`
+An example of how to embed Instagram videos by using [Video.js](http://www.videojs.com), can be found in the `/example` folder.  
 
-For all parameters in the configuration array exists a public setter and getter method.
+---
 
-## Pagination *(beta)* ##
+**Please note:** Instagram currently doesn't allow to filter videos.
 
-> This feature is still in development, but you can test it on the dev branch: [Pagination documentation](https://github.com/cosenary/Instagram-PHP-API/tree/dev#pagination-beta).
+---
 
-## Samples for redirect URLs ##
+## Pagination
+
+Each endpoint has a maximum range of results, so increasing the `limit` parameter above the limit won't help (e.g. `getUserMedia()` has a limit of 90).
+
+That's the point where the "pagination" feature comes into play.  
+Simply pass an object into the `pagination()` method and receive your next dataset:
+
+```php
+<?php
+    $photos = $instagram->getTagMedia('kitten');
+
+    $result = $instagram->pagination($photos);
+?>
+```
+
+Iteration with `do-while` loop.
+
+## Samples for redirect URLs
 
 <table>
   <tr>
@@ -275,38 +321,66 @@ For all parameters in the configuration array exists a public setter and getter 
   </tr>
 </table>
 
-> If you need additional informations, take a look at [Instagrams API docs](http://instagram.com/developer/authentication/).
+> If you need further information about an endpoint, take a look at the [Instagram API docs](http://instagram.com/developer/authentication/).
 
-## Example App ##
+## Example App
 
-The small App, which is located in the `example/` folder, helps you to get started with the class.  
-Its whole code is documented and will take you through all steps of the OAuth2 process.  
-The great Instagram Sign In button is designed by [Murat Mutlu](http://twitter.com/mutlu82/).
+![Image](http://cl.ly/image/221T1g3w3u2J/preview.png)
 
-A short tutorial about how to build an Instagram login with my class has been published at [9lessons](http://www.9lessons.info/2012/05/login-with-instagram-php.html).
+This example project, located in the `example/` folder, helps you to get started.  
+The code is well documented and takes you through all required steps of the OAuth2 process.  
+Credit for the awesome Instagram icons goes to [Ricardo de Zoete Pro](http://dribbble.com/RZDESIGN).
 
-## History ##
+#### More examples and tutorials:
 
-> Version 2.0 is in development.  
-> Get a sneak peek at the [dev branch](https://github.com/cosenary/Instagram-PHP-API/tree/dev).
+- [User likes](https://gist.github.com/cosenary/3287237)
+- [Follow user](https://gist.github.com/cosenary/8322459)
+- [User follower](https://gist.github.com/cosenary/7267139)
+- [Load more button](https://gist.github.com/cosenary/2975779)
+- [User most recent media](https://gist.github.com/cosenary/1711218)
+- [Instagram login (by 9lessons)](http://www.9lessons.info/2012/05/login-with-instagram-php.html)
 
-**Instagram 1.9 - 04/09/2013**
+> Let me know if you have to share a code example, too.
 
-- `bug` / `change` cURL CURLOPT_SSL_VERIFYPEER disabled (fixes #6, #7, #8, #16)
+## History
 
-**Instagram 1.8 - 14/06/2013 16/08/2013**
+**Instagram 2.1 - 30/01/2014**
 
-- `update` Updated documentation
-- `feature` Added cURL error message
-- `feature` Added `limit` to `getTagMedia()` method
+- `update` added min and max_timestamp to `searchMedia()`
+- `update` public authentication for `getUserMedia()` method
+- `fix` support for inconsistent pagination return type (*relationship endpoint*)
 
-**Instagram 1.7 - 07/08/2012**
+**Instagram 2.0 - 24/12/2013**
 
-- `feature` Added Likes endpoints
+- `release` version 2.0
+
+**Instagram 2.0 beta - 20/11/2013**
+
+- `feature` Added *Locations* endpoint
+- `update` Updated example project to display Instagram videos
+
+**Instagram 2.0 alpha 4 - 01/11/2013**
+
+- `feature` Comment endpoint implemented
+- `feature` New example with a fancy GUI
+- `update` Improved documentation
+
+**Instagram 2.0 alpha 3 - 04/09/2013**
+
+- `merge` Merged master branch updates
+    - `update` Updated documentation
+    - `bug` / `change` cURL CURLOPT_SSL_VERIFYPEER disabled (fixes #6, #7, #8, #16)
+    - `feature` Added cURL error message
+    - `feature` Added `limit` to `getTagMedia()` method
+
+**Instagram 2.0 alpha 2 - 14/06/2013**
+
+- `feature` Improved Pagination functionality
 - `change` Added `distance` parameter to `searchMedia()` method (thanks @jonathanwkelly)
 
-**Instagram 1.6 - 22/05/2012**
+**Instagram 2.0 alpha 1 - 28/05/2012**
 
+- `feature` Added Pagination method
 - `feature` Added User Relationship endpoints
 - `feature` Added scope parameter table for the `getLoginUrl()` method
 
@@ -333,7 +407,9 @@ A short tutorial about how to build an Instagram login with my class has been pu
 - `release` Beta version
 - `update` Small documentation
 
-## Credits ##
+## Credits
 
-Copyright (c) 2011-2013 - Programmed by Christian Metz  
+Copyright (c) 2011-2014 - Programmed by Christian Metz  
 Released under the [BSD License](http://www.opensource.org/licenses/bsd-license.php).
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/cosenary/instagram-php-api/trend.png)](https://bitdeli.com/free "Bitdeli Badge")

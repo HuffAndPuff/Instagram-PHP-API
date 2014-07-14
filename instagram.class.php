@@ -3,15 +3,14 @@
 /**
  * Instagram API class
  * API Documentation: http://instagram.com/developer/
- * Class Documentation: https://github.com/cosenary/Instagram-PHP-API/blob/master/README.markdown
+ * Class Documentation: https://github.com/cosenary/Instagram-PHP-API/tree/dev
  * 
  * @author Christian Metz
  * @since 30.10.2011
- * @copyright Christian Metz - MetzWeb Networks 2012
- * @version 1.9
+ * @copyright Christian Metz - MetzWeb Networks 2011-2014
+ * @version 2.1
  * @license BSD http://www.opensource.org/licenses/bsd-license.php
  */
-
 class Instagram {
 
   /**
@@ -71,7 +70,6 @@ class Instagram {
    */
   private $_actions = array('follow', 'unfollow', 'block', 'unblock', 'approve', 'deny');
 
-
   /**
    * Default constructor
    *
@@ -129,7 +127,7 @@ class Instagram {
   /**
    * Get user info
    *
-   * @param integer [optional] $id        Instagram user id
+   * @param integer [optional] $id        Instagram user ID
    * @return mixed
    */
   public function getUser($id = 0) {
@@ -142,6 +140,7 @@ class Instagram {
    * Get user activity feed
    *
    * @param integer [optional] $limit     Limit of returned results
+   * @param integer $max_id               Maximum ID of the results returned. Use for scrolling.
    * @return mixed
    */
   public function getUserFeed($limit = 0, $max_id = 0) {
@@ -151,12 +150,12 @@ class Instagram {
   /**
    * Get user recent media
    *
-   * @param integer [optional] $id        Instagram user id
+   * @param integer [optional] $id        Instagram user ID
    * @param integer [optional] $limit     Limit of returned results
    * @return mixed
    */
   public function getUserMedia($id = 'self', $limit = 0) {
-    return $this->_makeCall('users/' . $id . '/media/recent', true, array('count' => $limit));
+    return $this->_makeCall('users/' . $id . '/media/recent', ($id === 'self'), array('count' => $limit));
   }
 
   /**
@@ -172,7 +171,7 @@ class Instagram {
   /**
    * Get the list of users this user follows
    *
-   * @param integer [optional] $id        Instagram user id
+   * @param integer [optional] $id        Instagram user ID
    * @param integer [optional] $limit     Limit of returned results
    * @return mixed
    */
@@ -183,7 +182,7 @@ class Instagram {
   /**
    * Get the list of users this user is followed by
    *
-   * @param integer [optional] $id        Instagram user id
+   * @param integer [optional] $id        Instagram user ID
    * @param integer [optional] $limit     Limit of returned results
    * @return mixed
    */
@@ -194,7 +193,7 @@ class Instagram {
   /**
    * Get information about a relationship to another user
    *
-   * @param integer $id                   Instagram user id
+   * @param integer $id                   Instagram user ID
    * @return mixed
    */
   public function getUserRelationship($id) {
@@ -205,7 +204,7 @@ class Instagram {
    * Modify the relationship between the current user and the target user
    *
    * @param string $action                Action command (follow/unfollow/block/unblock/approve/deny)
-   * @param integer $user                 Target user id
+   * @param integer $user                 Target user ID
    * @return mixed
    */
   public function modifyRelationship($action, $user) {
@@ -220,17 +219,19 @@ class Instagram {
    *
    * @param float $lat                    Latitude of the center search coordinate
    * @param float $lng                    Longitude of the center search coordinate
-   * @param integer [optional] $distance  Distance in meter (max. distance: 5km = 5000)
+   * @param integer [optional] $distance  Distance in metres (default is 1km (distance=1000), max. is 5km)
+   * @param long [optional] $minTimestamp Media taken later than this timestamp (default: 5 days ago)
+   * @param long [optional] $maxTimestamp Media taken earlier than this timestamp (default: now)
    * @return mixed
    */
-  public function searchMedia($lat, $lng, $distance = 1000) {
-    return $this->_makeCall('media/search', false, array('lat' => $lat, 'lng' => $lng, 'distance' => $distance));
+  public function searchMedia($lat, $lng, $distance = 1000, $minTimestamp = NULL, $maxTimestamp = NULL) {
+    return $this->_makeCall('media/search', false, array('lat' => $lat, 'lng' => $lng, 'distance' => $distance, 'min_timestamp' => $minTimestamp, 'max_timestamp' => $maxTimestamp));
   }
 
   /**
    * Get media by its id
    *
-   * @param integer $id                   Instagram media id
+   * @param integer $id                   Instagram media ID
    * @return mixed
    */
   public function getMedia($id) {
@@ -272,6 +273,7 @@ class Instagram {
    *
    * @param string $name                  Valid tag name
    * @param integer [optional] $limit     Limit of returned results
+   * @param integer $max_id               Maximum ID of the results returned. Use for scrolling.
    * @return mixed
    */
   public function getTagMedia($name, $limit = 0, $max_id = 0) {
@@ -281,7 +283,7 @@ class Instagram {
   /**
    * Get a list of users who have liked this media
    *
-   * @param integer $id                   Instagram media id
+   * @param integer $id                   Instagram media ID
    * @return mixed
    */
   public function getMediaLikes($id) {
@@ -290,9 +292,8 @@ class Instagram {
 
   /**
    * Get a list of comments for this media
-   *
-   * @param integer $id                   Instagram media id
-   *
+   * 
+   * @param integer $id                   Instagram media ID
    * @return mixed
    */
   public function getMediaComments($id) {
@@ -300,9 +301,31 @@ class Instagram {
   }
 
   /**
+   * Add a comment on a media
+   * 
+   * @param integer $id                   Instagram media ID
+   * @param string $text                  Comment content
+   * @return mixed
+   */
+  public function addMediaComment($id, $text) {
+    return $this->_makeCall('media/' . $id . '/comments', true, array('text' => $text), 'POST');
+  }
+
+  /**
+   * Remove user comment on a media
+   * 
+   * @param integer $id                   Instagram media ID
+   * @param string $commentID             User comment ID
+   * @return mixed
+   */
+  public function deleteMediaComment($id, $commentID) {
+    return $this->_makeCall('media/' . $id . '/comments/' . $commentID, true, null, 'DELETE');
+  }
+
+  /**
    * Set user like on a media
    *
-   * @param integer $id                   Instagram media id
+   * @param integer $id                   Instagram media ID
    * @return mixed
    */
   public function likeMedia($id) {
@@ -312,11 +335,71 @@ class Instagram {
   /**
    * Remove user like on a media
    *
-   * @param integer $id                   Instagram media id
+   * @param integer $id                   Instagram media ID
    * @return mixed
    */
   public function deleteLikedMedia($id) {
     return $this->_makeCall('media/' . $id . '/likes', true, null, 'DELETE');
+  }
+
+  /**
+   * Get information about a location
+   *
+   * @param integer $id                   Instagram location ID
+   * @return mixed
+   */
+  public function getLocation($id) {
+    return $this->_makeCall('locations/' . $id, false);
+  }
+
+  /**
+   * Get recent media from a given location
+   *
+   * @param integer $id                   Instagram location ID
+   * @return mixed
+   */
+  public function getLocationMedia($id) {
+    return $this->_makeCall('locations/' . $id . '/media/recent', false);
+  }
+
+  /**
+   * Get recent media from a given location
+   *
+   * @param float $lat                    Latitude of the center search coordinate
+   * @param float $lng                    Longitude of the center search coordinate
+   * @param integer [optional] $distance  Distance in meter (max. distance: 5km = 5000)
+   * @return mixed
+   */
+  public function searchLocation($lat, $lng, $distance = 1000) {
+    return $this->_makeCall('locations/search', false, array('lat' => $lat, 'lng' => $lng, 'distance' => $distance));
+  }
+
+  /**
+   * Pagination feature
+   * 
+   * @param object  $obj                  Instagram object returned by a method
+   * @param integer $limit                Limit of returned results
+   * @return mixed
+   */
+  public function pagination($obj, $limit = 0) {
+    if (true === is_object($obj) && !is_null($obj->pagination)) {
+      if (!isset($obj->pagination->next_url)) {
+        return;
+      }
+      $apiCall = explode('?', $obj->pagination->next_url);
+      if (count($apiCall) < 2) {
+        return;
+      }
+      $function = str_replace(self::API_URL, '', $apiCall[0]);
+      $auth = (strpos($apiCall[1], 'access_token') !== false);
+      if (isset($obj->pagination->next_max_id)) {
+        return $this->_makeCall($function, $auth, array('max_id' => $obj->pagination->next_max_id, 'count' => $limit));
+      } else {
+        return $this->_makeCall($function, $auth, array('cursor' => $obj->pagination->next_cursor, 'count' => $limit));
+      }
+    } else {
+      throw new Exception("Error: pagination() | This method doesn't support pagination.");
+    }
   }
 
   /**
@@ -348,7 +431,7 @@ class Instagram {
    * @param string [optional] $method     Request type GET|POST
    * @return mixed
    */
-  private function _makeCall($function, $auth = false, $params = null, $method = 'GET') {
+  protected function _makeCall($function, $auth = false, $params = null, $method = 'GET') {
     if (false === $auth) {
       // if the call doesn't requires authentication
       $authMethod = '?client_id=' . $this->getApiKey();
@@ -384,6 +467,9 @@ class Instagram {
     }
     
     $jsonData = curl_exec($ch);
+    if (false === $jsonData) {
+      throw new Exception("Error: _makeCall() - cURL error: " . curl_error($ch));
+    }
     curl_close($ch);
     
     return json_decode($jsonData);
@@ -407,11 +493,9 @@ class Instagram {
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     
     $jsonData = curl_exec($ch);
-    
     if (false === $jsonData) {
-      echo 'Curl error: ' . curl_error($ch);
+      throw new Exception("Error: _makeOAuthCall() - cURL error: " . curl_error($ch));
     }
-    
     curl_close($ch);
     
     return json_decode($jsonData);
